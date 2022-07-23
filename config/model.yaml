@@ -1,0 +1,37 @@
+grid_search:
+  class: GridSearchCV
+  module: sklearn.model_selection
+  params:
+    cv: 5
+    verbose: 2
+    scoring: accuracy
+model_selection:
+  module_0:
+    class: LogisticRegression
+    module: sklearn.linear_model
+    params:
+      fit_intercept: true
+    search_param_grid:
+      fit_intercept:
+      - true
+      - false
+      C: 10.0 **np.arange(-2,3)
+  module_1:
+    class: DecisionTreeClassifier
+    module: sklearn.tree
+    search_param_grid:
+      max_depth:
+      - 2
+      - 3
+      - 4
+      - 6
+      - 8
+      min_samples_split:
+      - 2
+      - 3
+      - 4
+      - 5
+      min_samples_leaf:
+      - 1
+      - 2
+      - 3

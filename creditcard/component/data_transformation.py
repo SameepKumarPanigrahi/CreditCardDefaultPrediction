@@ -1,5 +1,3 @@
-from ast import Pass
-from distutils.log import info
 from creditcard.exception import CreditCardException
 from creditcard.logger import logging
 from creditcard.entity.artifact_entity import *
