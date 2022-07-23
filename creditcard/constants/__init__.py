@@ -51,6 +51,10 @@ DATASET_SCHEMA_COLUMNS_KEY=  "columns"
 NUMERICAL_COLUMN_KEY="numerical_columns"
 CATEGORICAL_COLUMN_KEY = "categorical_columns"
 TARGET_COLUMN_KEY="target_column"
+COLUMN_TO_BE_DROPED = "column_to_be_droped"
+COLUMN_NEEDS_TO_REPLACE_VALUE = "column_needs_to_replace_value"
+ALL_FEATURE_COLUMNS = "all_feature_columns"
+COUMN_NEEDS_TO_BE_TRANSFORMED_TO_NORMAL_DISTRIBUTION = "coumn_needs_to_be_transformed_to_normal_distribution"
 
 #Model Training Related Variable
 MODEL_TRAINER_ARTIFACT_DIR = "model_trainer"
