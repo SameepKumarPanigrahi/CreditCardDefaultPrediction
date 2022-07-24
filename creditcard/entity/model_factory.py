@@ -3,6 +3,7 @@ from creditcard.logger import logging
 from creditcard.entity.artifact_entity import *
 from creditcard.entity.config_entity import *
 from creditcard.util.util import *
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 import numpy as np
 import sys, os
@@ -33,9 +34,89 @@ BestModel = namedtuple("BestModel", ["model_serial_number",
                                      "best_score", ])
 
 MetricInfoArtifact = namedtuple("MetricInfoArtifact",
-                                ["model_name", "model_object", "train_rmse", "test_rmse", "train_accuracy",
+                                ["model_name", "model_object", "recall", "precession", "f1_score", "train_accuracy",
                                  "test_accuracy", "model_accuracy", "index_number"])
 
+
+
+def evaluate_classification_model(model_list:list, X_train:np.ndarray, y_train:np.ndarray, 
+                              X_test:np.ndarray, y_test:np.ndarray, base_accuracy:float= 0.6)->MetricInfoArtifact:
+    """
+    Description:
+    This function compare multiple regression model return best model
+    Params:
+    model_list: List of model
+    X_train: Training dataset input feature
+    y_train: Training dataset target feature
+    X_test: Testing dataset input feature
+    y_test: Testing dataset input feature
+    return
+    It retured a named tuple
+    
+    MetricInfoArtifact = namedtuple("MetricInfo",
+                                ["model_name", "model_object", "recall", "precession", "f1_score", "train_accuracy",
+                                 "test_accuracy", "model_accuracy", "index_number"])
+    """
+    try:
+        index_number = 0
+        metric_info_artifact = None
+        for model in model_list:
+            model_name = str(model)
+            logging.info(f"{'>>'*30}Started evaluating model: [{type(model).__name__}] {'<<'*30}")
+            
+            #Getting prediction for train and test data 
+            y_train_pred = model.predict(X_train)
+            y_test_pred = model.predict(X_test)
+            
+            #Calculating accuracy_score for train and test data 
+            train_acc = accuracy_score(y_train, y_train_pred)
+            test_acc = accuracy_score(y_test, y_test_pred)
+            
+            #Calculate Confustion Matrix
+            confusion_mat = confusion_matrix(y_test, y_test_pred)
+            
+            true_positive = confusion_mat[0][0]
+            false_postitive = confusion_mat[0][1]
+            false_negative = confusion_mat[1][0]
+            true_negative = confusion_mat[1][1]
+            
+            #Calculate recall precession and f1_score
+            recall = true_positive/(true_positive+false_negative)
+            precession = true_positive/(true_positive+false_postitive)
+            f1_score = 2*(precession * recall) / (precession+recall)
+            
+            model_accuracy = (2 * (train_acc * test_acc)) / (train_acc + test_acc)
+            diff_test_train_acc = abs(test_acc - train_acc)
+            
+            #Logging all important metric
+            logging.info(f"{'>>'*30} Score {'<<'*30}")
+            logging.info(f"Train Score\t\t Test Score\t\t Average Score")
+            logging.info(f"{train_acc}\t\t {test_acc}\t\t{model_accuracy}")
+
+            logging.info(f"{'>>'*30} Loss {'<<'*30}")
+            logging.info(f"Diff test train accuracy: [{diff_test_train_acc}].") 
+            logging.info(f"Recall for test data : [{recall}].")
+            logging.info(f"precession for test Data : [{precession}].")
+            logging.info(f"f1_score for test Data : [{f1_score}].")
+            
+            #if model accuracy is greater than base accuracy and train and test score is within certain thershold
+            #we will accept that model as accepted model
+            if model_accuracy > base_accuracy and diff_test_train_acc < 0.05:
+                base_accuracy = model_accuracy
+                metric_info_artifact = MetricInfoArtifact(model_name=model_name,
+                                                          model_object=model,
+                                                          recall=recall,
+                                                          precession=precession,
+                                                          f1_score=f1_score,
+                                                          train_accuracy=train_acc,
+                                                          test_accuracy=test_acc,
+                                                          model_accuracy=model_accuracy,
+                                                          index_number=index_number)
+                logging.info(f"Acceptable model found {metric_info_artifact}. ")
+            index_number += 1
+        return metric_info_artifact
+    except Exception as e:
+        raise CreditCardException(e, sys) from e
 
 
 class ModelFactory:

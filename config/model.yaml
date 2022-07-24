@@ -15,7 +15,12 @@ model_selection:
       fit_intercept:
       - true
       - false
-      C: 10.0 **np.arange(-2,3)
+      C: 
+      - 1.e-02
+      - 1.e-01
+      - 1.e+00
+      - 1.e+01
+      - 1.e+02
   module_1:
     class: DecisionTreeClassifier
     module: sklearn.tree
